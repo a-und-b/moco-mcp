@@ -108,7 +108,7 @@ export function createValidationErrorMessage(error: {
  * @returns User-friendly message in English
  */
 export function createEmptyResultMessage(context: {
-  type: 'activities' | 'projects' | 'tasks' | 'holidays' | 'presences' | 'public_holidays';
+  type: 'activities' | 'projects' | 'tasks' | 'holidays' | 'presences' | 'public_holidays' | 'companies' | 'contacts' | 'invoices';
   startDate?: string;
   endDate?: string;
   year?: number;
@@ -116,25 +116,34 @@ export function createEmptyResultMessage(context: {
   query?: string;
 }): string {
   const { type, startDate, endDate, year, projectId, query } = context;
-  
+
   switch (type) {
     case 'activities':
       return `No activities found in the period ${startDate} to ${endDate}.`;
-    
+
     case 'projects':
-      return query 
+      return query
         ? `No projects found for search term "${query}".`
         : 'No projects found.';
-    
+
     case 'tasks':
       return `No tasks found for project ${projectId}.`;
-    
+
     case 'holidays':
       return `No holidays found for year ${year}.`;
-    
+
     case 'presences':
       return `No presences found in the period ${startDate} to ${endDate}.`;
-    
+
+    case 'companies':
+      return 'No companies found.';
+
+    case 'contacts':
+      return 'No contacts found.';
+
+    case 'invoices':
+      return 'No invoices found.';
+
     default:
       return 'No results found.';
   }
