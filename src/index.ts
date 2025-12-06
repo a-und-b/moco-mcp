@@ -18,8 +18,41 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 // Import all MCP tools
-import { getActivitiesTool } from './tools/activitiesTools.js';
-import { getUserProjectsTool, getUserProjectTasksTool } from './tools/userProjectsTools.js';
+import {
+  getActivitiesTool,
+  createActivityTool,
+  updateActivityTool,
+  deleteActivityTool,
+  startActivityTimerTool,
+  stopActivityTimerTool
+} from './tools/activitiesTools.js';
+import {
+  getUserProjectsTool,
+  getUserProjectTasksTool,
+  updateProjectTool
+} from './tools/userProjectsTools.js';
+import {
+  getCompaniesTool,
+  getCompanyTool,
+  createCompanyTool,
+  updateCompanyTool,
+  deleteCompanyTool
+} from './tools/companiesTools.js';
+import {
+  getContactsTool,
+  getContactTool,
+  createContactTool,
+  updateContactTool,
+  deleteContactTool
+} from './tools/contactsTools.js';
+import {
+  getInvoicesTool,
+  getInvoiceTool,
+  createInvoiceTool,
+  updateInvoiceStatusTool,
+  sendInvoiceEmailTool,
+  deleteInvoiceTool
+} from './tools/invoicesTools.js';
 import { getUserHolidaysTool } from './tools/userHolidaysTools.js';
 import { getUserPresencesTool } from './tools/userPresencesTools.js';
 import { getUserSickDaysTool } from './tools/userSickDaysTools.js';
@@ -32,9 +65,40 @@ import { MOCO_PROMPTS, getMocoPromptByName } from './prompts/mocoPrompts.js';
  * Available MCP tools for MoCo API access
  */
 const AVAILABLE_TOOLS = [
+  // Activities - Read
   getActivitiesTool,
+  // Activities - Write
+  createActivityTool,
+  updateActivityTool,
+  deleteActivityTool,
+  // Activities - Timer
+  startActivityTimerTool,
+  stopActivityTimerTool,
+  // Projects - Read
   getUserProjectsTool,
   getUserProjectTasksTool,
+  // Projects - Write
+  updateProjectTool,
+  // Companies - CRUD
+  getCompaniesTool,
+  getCompanyTool,
+  createCompanyTool,
+  updateCompanyTool,
+  deleteCompanyTool,
+  // Contacts - CRUD
+  getContactsTool,
+  getContactTool,
+  createContactTool,
+  updateContactTool,
+  deleteContactTool,
+  // Invoices - CRUD
+  getInvoicesTool,
+  getInvoiceTool,
+  createInvoiceTool,
+  updateInvoiceStatusTool,
+  sendInvoiceEmailTool,
+  deleteInvoiceTool,
+  // Holidays & Presences
   getUserHolidaysTool,
   getUserPresencesTool,
   getUserSickDaysTool,

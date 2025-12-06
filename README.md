@@ -1,6 +1,6 @@
 # 📊 MOCO MCP Server
 
-A Model Context Protocol (MCP) server that provides employee read access to the MOCO API for time tracking, project management, holiday tracking, and presence monitoring.
+A Model Context Protocol (MCP) server that provides comprehensive access to the MOCO API for time tracking, project management, CRM (companies & contacts), invoicing, holiday tracking, and presence monitoring.
 
 ## ⚡ Quick Start
 
@@ -216,15 +216,64 @@ Use the `env` section in your MCP client configuration as shown above.
 
 ## 🛠️ Available Tools
 
+### Activities (Time Tracking)
+
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `get_activities` | Get activities within a date range with summation and optional project filtering | `startDate`, `endDate` (ISO 8601), `projectId` (optional) |
+| `get_activities` | Get activities within a date range with summation | `startDate`, `endDate`, `projectId` (optional) |
+| `create_activity` | Create a new time entry | `date`, `projectId`, `taskId`, `hours`, `description` (optional) |
+| `update_activity` | Update an existing time entry | `activityId`, `date`, `projectId`, `taskId`, `hours`, `description` |
+| `delete_activity` | Delete a time entry | `activityId` |
+| `start_activity_timer` | Start the timer for an activity | `activityId` |
+| `stop_activity_timer` | Stop the timer for an activity | `activityId` |
+
+### Projects
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
 | `get_user_projects` | List all assigned projects or search by query | `query` (optional) |
-| `get_user_project_tasks` | Get all tasks for a specific assigned project | `projectId` |
-| `get_user_holidays` | Get holiday overview for a year with calculations | `year` |
-| `get_user_presences` | Get presence data within a date range with daily summaries | `startDate`, `endDate` (ISO 8601) |
-| `get_user_sick_days` | Get sick days overview for a year with calculations | `year` |
-| `get_public_holidays` | Get public holidays for a year with working days calculations | `year` |
+| `get_user_project_tasks` | Get all tasks for a specific project | `projectId` |
+| `update_project` | Update project details | `projectId`, various optional fields |
+
+### Companies (CRM)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_companies` | List companies with optional filtering | `type`, `tags`, `identifier` (all optional) |
+| `get_company` | Get a specific company by ID | `companyId` |
+| `create_company` | Create a new company | `name`, `type`, `website`, `email`, etc. |
+| `update_company` | Update an existing company | `companyId`, various optional fields |
+| `delete_company` | Delete a company | `companyId` |
+
+### Contacts (CRM)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_contacts` | List contacts with optional filtering | `tags` (optional) |
+| `get_contact` | Get a specific contact by ID | `contactId` |
+| `create_contact` | Create a new contact | `firstname`, `lastname`, `companyId`, `email`, etc. |
+| `update_contact` | Update an existing contact | `contactId`, various optional fields |
+| `delete_contact` | Delete a contact | `contactId` |
+
+### Invoices
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_invoices` | List invoices with optional filtering | `status`, `projectId`, `companyId` (all optional) |
+| `get_invoice` | Get a specific invoice by ID | `invoiceId` |
+| `create_invoice` | Create a new invoice | `customerId`, `recipientAddress`, `items`, etc. |
+| `update_invoice_status` | Update invoice status | `invoiceId`, `status` |
+| `send_invoice_email` | Send invoice via email | `invoiceId`, `emailsTo`, `subject`, `text` |
+| `delete_invoice` | Delete an invoice | `invoiceId`, `reason` (optional) |
+
+### Time Off & Presence
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_user_holidays` | Get holiday overview for a year | `year` |
+| `get_user_presences` | Get presence data within a date range | `startDate`, `endDate` |
+| `get_user_sick_days` | Get sick days overview for a year | `year` |
+| `get_public_holidays` | Get public holidays for a year | `year` |
 
 ## 🎯 Available Prompts
 
@@ -457,6 +506,98 @@ Summary:
 - Approximate working days: 251 days
 ```
 
+### Create Activity (Time Entry)
+
+```json
+{
+  "name": "create_activity",
+  "arguments": {
+    "date": "2024-01-15",
+    "projectId": 123456,
+    "taskId": 789,
+    "hours": 2.5,
+    "description": "Implemented new feature"
+  }
+}
+```
+
+### Start/Stop Timer
+
+```json
+{
+  "name": "start_activity_timer",
+  "arguments": {
+    "activityId": 12345
+  }
+}
+```
+
+### Create Company
+
+```json
+{
+  "name": "create_company",
+  "arguments": {
+    "name": "Acme Corp",
+    "type": "customer",
+    "website": "https://acme.example.com",
+    "email": "contact@acme.example.com",
+    "country_code": "DE"
+  }
+}
+```
+
+### Create Contact
+
+```json
+{
+  "name": "create_contact",
+  "arguments": {
+    "firstname": "John",
+    "lastname": "Doe",
+    "companyId": 123,
+    "email": "john.doe@example.com",
+    "phone": "+49 123 456789"
+  }
+}
+```
+
+### Create Invoice
+
+```json
+{
+  "name": "create_invoice",
+  "arguments": {
+    "customerId": 123,
+    "recipientAddress": "Acme Corp\n123 Main Street\n12345 Berlin",
+    "items": [
+      {
+        "title": "Consulting Services",
+        "quantity": 10,
+        "unit": "hours",
+        "unit_price": 150.00
+      }
+    ],
+    "date": "2024-01-15",
+    "due_date": "2024-02-15"
+  }
+}
+```
+
+### Send Invoice Email
+
+```json
+{
+  "name": "send_invoice_email",
+  "arguments": {
+    "invoiceId": 456,
+    "emailsTo": ["billing@customer.com"],
+    "subject": "Invoice #2024-001",
+    "text": "Please find attached your invoice."
+  }
+}
+```
+
 ## 🔧 Advanced Configuration
 
 <details>
@@ -562,11 +703,13 @@ echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | npx -y @niondigital
 
 ## 🌟 Features
 
-- **✅ Read-only Access:** Safe API integration with no data modification
-- **🔄 Automatic Pagination:** Handles large datasets seamlessly  
+- **✅ Full CRUD Support:** Create, read, update, and delete across all entities
+- **🔄 Automatic Pagination:** Handles large datasets seamlessly
 - **📊 Smart Aggregation:** Automatic summation by date, project, and task
-- **🎯 Project Filtering:** Filter activities by specific projects
-- **🧩 Comprehensive Tools:** 7 specialized tools for different use cases
+- **⏱️ Timer Control:** Start and stop activity timers
+- **🏢 CRM Integration:** Manage companies and contacts
+- **💰 Invoice Management:** Create, send, and manage invoices
+- **🧩 Comprehensive Tools:** 26 specialized tools for different use cases
 - **🎯 Intelligent Prompts:** 8 AI-powered prompts for complex analysis and insights
 - **🌐 Multi-Client Support:** Works with all major MCP clients
 

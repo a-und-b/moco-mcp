@@ -244,3 +244,128 @@ export interface PaginatedResponse<T> {
   data: T[];
   meta: PaginationMeta;
 }
+
+/**
+ * Company record from MoCo API
+ */
+export interface Company {
+  id: number;
+  name: string;
+  type: 'customer' | 'supplier' | 'organization';
+  website?: string;
+  email?: string;
+  phone?: string;
+  fax?: string;
+  address?: string;
+  info?: string;
+  country_code?: string;
+  vat_identifier?: string;
+  currency?: string;
+  identifier?: string;
+  billing_email_cc?: string;
+  billing_notes?: string;
+  footer?: string;
+  tags?: string[];
+  custom_properties?: Record<string, string>;
+  user?: {
+    id: number;
+    firstname: string;
+    lastname: string;
+  };
+  debit_number?: string;
+  credit_number?: string;
+  iban?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Contact record from MoCo API
+ */
+export interface Contact {
+  id: number;
+  firstname?: string;
+  lastname: string;
+  gender: 'F' | 'M' | 'U';
+  title?: string;
+  job_position?: string;
+  mobile_phone?: string;
+  work_phone?: string;
+  work_fax?: string;
+  work_email?: string;
+  home_email?: string;
+  work_address?: string;
+  home_address?: string;
+  birthday?: string;
+  info?: string;
+  tags?: string[];
+  company?: {
+    id: number;
+    name: string;
+  };
+  user?: {
+    id: number;
+    firstname: string;
+    lastname: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Invoice item for creating invoices
+ */
+export interface InvoiceItem {
+  type: 'title' | 'description' | 'item' | 'subtotal' | 'page-break' | 'separator';
+  title?: string;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  unit_price?: number;
+  net_total?: number;
+  optional?: boolean;
+  service_type?: 'service' | 'expense';
+}
+
+/**
+ * Invoice record from MoCo API
+ */
+export interface Invoice {
+  id: number;
+  identifier: string;
+  date: string;
+  due_date: string;
+  title: string;
+  recipient_address: string;
+  currency: string;
+  net_total: number;
+  tax: number;
+  gross_total: number;
+  status: 'draft' | 'created' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'ignored';
+  discount?: number;
+  cash_discount?: number;
+  cash_discount_days?: number;
+  service_period_from?: string;
+  service_period_to?: string;
+  salutation?: string;
+  footer?: string;
+  tags?: string[];
+  custom_properties?: Record<string, string>;
+  company?: {
+    id: number;
+    name: string;
+  };
+  project?: {
+    id: number;
+    name: string;
+  };
+  items?: InvoiceItem[];
+  payments?: {
+    id: number;
+    date: string;
+    amount: number;
+    description?: string;
+  }[];
+  created_at: string;
+  updated_at: string;
+}
