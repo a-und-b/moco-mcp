@@ -5,7 +5,7 @@ A Model Context Protocol (MCP) server that provides comprehensive access to the 
 ## ⚡ Quick Start
 
 ```bash
-npx -y @niondigital/moco-mcp
+npx -y @a-und-b/moco-mcp
 ```
 
 That's it! The server will start and be ready to connect to your MCP client.
@@ -33,7 +33,7 @@ Add to your Claude Desktop claude_desktop_config.json file:
   "mcpServers": {
     "moco": {
       "command": "npx",
-      "args": ["-y", "@niondigital/moco-mcp"],
+      "args": ["-y", "@a-und-b/moco-mcp"],
       "env": {
         "MOCO_API_KEY": "your-moco-api-key",
         "MOCO_SUBDOMAIN": "your-subdomain"
@@ -59,7 +59,7 @@ Add to your Cursor settings:
   "mcpServers": {
     "moco": {
       "command": "npx",
-      "args": ["-y", "@niondigital/moco-mcp"],
+      "args": ["-y", "@a-und-b/moco-mcp"],
       "env": {
         "MOCO_API_KEY": "your-moco-api-key",
         "MOCO_SUBDOMAIN": "your-subdomain"
@@ -81,7 +81,7 @@ Add to your Windsurf MCP configuration:
    "mcpServers": {
       "moco": {
          "command": "npx",
-         "args": ["-y", "@niondigital/moco-mcp"],
+         "args": ["-y", "@a-und-b/moco-mcp"],
          "env": {
             "MOCO_API_KEY": "your-moco-api-key",
             "MOCO_SUBDOMAIN": "your-subdomain"
@@ -99,7 +99,7 @@ Add to your Windsurf MCP configuration:
 Add the MCP server to Claude Code:
 
 ```bash
-claude mcp add -e MOCO_API_KEY="your-moco-api-key" -e MOCO_SUBDOMAIN="your-subdomain" moco -- npx -y @niondigital/moco-mcp
+claude mcp add -e MOCO_API_KEY="your-moco-api-key" -e MOCO_SUBDOMAIN="your-subdomain" moco -- npx -y @a-und-b/moco-mcp
 ```
 
 </details>
@@ -114,7 +114,7 @@ Configure Gemini CLI with MCP support:
    "mcpServers": {
       "moco": {
          "command": "npx",
-         "args": ["-y", "@niondigital/moco-mcp"],
+         "args": ["-y", "@a-und-b/moco-mcp"],
          "env": {
             "MOCO_API_KEY": "your-moco-api-key",
             "MOCO_SUBDOMAIN": "your-subdomain"
@@ -140,7 +140,7 @@ Configure Gemini CLI with MCP support:
     "command": "npx",
     "args": [
       "-y",
-      "@niondigital/moco-mcp"
+      "@a-und-b/moco-mcp"
     ],
     "env": {
        "MOCO_API_KEY": "your-moco-api-key",
@@ -167,7 +167,7 @@ Configure Gemini CLI with MCP support:
   "mcpServers": {
     "moco": {
       "command": "npx",
-      "args": ["-y", "@niondigital/moco-mcp"],
+      "args": ["-y", "@a-und-b/moco-mcp"],
        "env": {
           "MOCO_API_KEY": "your-moco-api-key",
           "MOCO_SUBDOMAIN": "your-subdomain"
@@ -189,7 +189,7 @@ Configure Gemini CLI with MCP support:
 1. **Log into your MOCO account**
 2. **Navigate to API settings:**
    - Go to **Profile** → **Integrations**
-   - Or visit: `https://niondigital.mocoapp.com/profile/integrations`
+   - Or visit: `https://yourcompany.mocoapp.com/profile/integrations`
 3. **Copy the listed API key**
 4. **Note your subdomain:**
    - From your MOCO URL: `https://yourcompany.mocoapp.com`
@@ -606,7 +606,7 @@ Summary:
 If you want to run from source:
 
 ```bash
-git clone https://github.com/niondigital/moco-mcp.git
+git clone https://github.com/a-und-b/moco-mcp.git
 cd moco-mcp
 npm install
 npm run build
@@ -638,10 +638,10 @@ Then configure your MCP client to use the local path:
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
-RUN npm install -g @niondigital/moco-mcp
+RUN npm install -g @a-und-b/moco-mcp
 ENV MOCO_API_KEY=""
 ENV MOCO_SUBDOMAIN=""
-CMD ["@niondigital/moco-mcp"]
+CMD ["@a-und-b/moco-mcp"]
 ```
 
 </details>
@@ -674,10 +674,10 @@ This package requires Node.js >= 18.0.0
 
 **❌ npx Connection Issues:**
 ```
-Error: Cannot find module '@niondigital/moco-mcp'
+Error: Cannot find module '@a-und-b/moco-mcp'
 ```
 - Ensure you have internet connection
-- Try: `npx --yes @niondigital/moco-mcp`
+- Try: `npx --yes @a-und-b/moco-mcp`
 - Clear npx cache: `npx clear-npx-cache`
 
 **❌ MCP Client Not Finding Tools:**
@@ -690,7 +690,7 @@ Error: Cannot find module '@niondigital/moco-mcp'
 For debugging, you can run the server with additional logging:
 
 ```bash
-NODE_ENV=development npx -y @niondigital/moco-mcp
+NODE_ENV=development npx -y @a-und-b/moco-mcp
 ```
 
 ### Testing Connection
@@ -698,7 +698,7 @@ NODE_ENV=development npx -y @niondigital/moco-mcp
 You can test the server manually:
 
 ```bash
-echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | npx -y @niondigital/moco-mcp
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | npx -y @a-und-b/moco-mcp
 ```
 
 ## 🌟 Features

@@ -1,5 +1,5 @@
 {
-  "name": "@niondigital/moco-mcp",
+  "name": "@a-und-b/moco-mcp",
   "version": "1.2.5",
   "description": "Model Context Protocol (MCP) server for MOCO: time tracking, project management, holidays, and presence monitoring",
   "main": "dist/index.js",
@@ -39,18 +39,18 @@
     "assistant"
   ],
   "author": {
-    "name": "David Seibert, nion digital",
-    "email": "david.seibert@nion-digital.com",
-    "url": "https://www.nion-digital.com/"
+    "name": "a-und-b",
+    "email": "",
+    "url": ""
   },
   "license": "MIT",
-  "homepage": "https://github.com/niondigital/moco-mcp#readme",
+  "homepage": "https://github.com/a-und-b/moco-mcp#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/niondigital/moco-mcp.git"
+    "url": "https://github.com/a-und-b/moco-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/niondigital/moco-mcp/issues"
+    "url": "https://github.com/a-und-b/moco-mcp/issues"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.1",
