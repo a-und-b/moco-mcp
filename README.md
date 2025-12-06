@@ -725,8 +725,13 @@ echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | npx -y @niondigital
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+## 🙏 Acknowledgments
+
+This project is a fork of [niondigital/moco-mcp](https://github.com/niondigital/moco-mcp), extended with comprehensive write operations for Activities, Projects, Companies, Contacts, and Invoices.
+
 ## 🆘 Support
 
 - **MOCO API Issues:** [MOCO API Documentation](https://github.com/hundertzehn/mocoapp-api-docs)
 - **MCP Protocol:** [MCP Documentation](https://modelcontextprotocol.io/)
-- **This Package:** [GitHub Issues](https://github.com/niondigital/moco-mcp/issues)
+- **Original Package:** [niondigital/moco-mcp](https://github.com/niondigital/moco-mcp)
+- **This Fork:** [GitHub Issues](https://github.com/a-und-b/moco-mcp/issues)
