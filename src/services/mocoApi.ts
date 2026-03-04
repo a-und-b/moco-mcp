@@ -271,6 +271,14 @@ export class MocoApiService {
   }
 
   /**
+   * Retrieves the currently authenticated user via /session endpoint
+   * @returns Promise with current user
+   */
+  async getCurrentUser(): Promise<StaffUser> {
+    return this.makeRequest<StaffUser>('/session');
+  }
+
+  /**
    * Retrieves all staff users
    * @param params - Optional filters: email, tags, includeArchived
    * @returns Promise with array of staff users

@@ -197,18 +197,27 @@ Configure Gemini CLI with MCP support:
 
 ### Environment Variables
 
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MOCO_API_KEY` | Yes | Your MOCO API key for authentication |
+| `MOCO_SUBDOMAIN` | Yes | Your MOCO subdomain (e.g., `yourcompany` from `yourcompany.mocoapp.com`) |
+| `MOCO_USER_ID` | No | When set, `get_activities` automatically filters to this user's entries when no `userId` is provided. Use `get_current_user` to find your ID. |
+
 You can set environment variables in several ways:
 
 **Option 1: System Environment Variables**
 ```bash
 export MOCO_API_KEY="your-moco-api-key"
 export MOCO_SUBDOMAIN="your-subdomain"
+# Optional: filter activities to your user by default
+export MOCO_USER_ID="12345"
 ```
 
 **Option 2: .env File (for local development)**
 ```env
 MOCO_API_KEY=your-moco-api-key
 MOCO_SUBDOMAIN=your-subdomain
+MOCO_USER_ID=12345
 ```
 
 **Option 3: MCP Client Configuration (recommended)**
@@ -220,8 +229,8 @@ Use the `env` section in your MCP client configuration as shown above.
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `get_activities` | Get activities within a date range with summation | `startDate`, `endDate`, `projectId` (optional), `userId` (optional) |
-| `create_activity` | Create a new time entry | `date`, `projectId`, `taskId`, `hours`, `description` (optional), `impersonateUserId` (optional, requires Staff) |
+| `get_activities` | Get activities within a date range with summation | `startDate`, `endDate`, `projectId` (optional), `userId` (optional). Uses `MOCO_USER_ID` as default filter when set. |
+| `create_activity` | Create a new time entry | `date`, `projectId`, `taskId`, `hours` or `seconds`, `description` (optional), `impersonateUserId` (optional, requires Staff) |
 | `update_activity` | Update an existing time entry | `activityId`, `date`, `projectId`, `taskId`, `hours`, `description`, `impersonateUserId` (optional, requires Staff) |
 | `delete_activity` | Delete a time entry | `activityId`, `impersonateUserId` (optional, requires Staff) |
 | `start_activity_timer` | Start the timer for an activity | `activityId` |
@@ -233,6 +242,7 @@ Note: `impersonateUserId` allows Staff users to create, update, or delete activi
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
+| `get_current_user` | Get the currently authenticated user (based on API key) | None |
 | `get_users` | List all staff users with optional filtering | `email`, `tags`, `includeArchived` (all optional) |
 | `get_user` | Get a single staff user by ID | `userId` |
 
@@ -347,6 +357,25 @@ The MoCo MCP server provides 8 intelligent prompts that orchestrate multiple too
 ```
 
 ## 📝 Tool Examples
+
+### Get Current User
+
+```json
+{
+  "name": "get_current_user",
+  "arguments": {}
+}
+```
+
+**Sample Output:**
+```
+Current authenticated user:
+User ID: 12345
+Name: John Doe
+Email: john.doe@example.com
+
+Tip: Set MOCO_USER_ID=12345 in your claude_desktop_config.json to automatically filter activities to your own entries.
+```
 
 ### Get Activities
 
@@ -542,6 +571,8 @@ Summary:
 }
 ```
 
+Duration can be specified in `hours` (e.g., 2.5) or `seconds` (e.g., 9000).
+
 ### Start/Stop Timer
 
 ```json
@@ -730,7 +761,7 @@ echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | npx -y @a-und-b/moc
 - **⏱️ Timer Control:** Start and stop activity timers
 - **🏢 CRM Integration:** Manage companies and contacts
 - **💰 Invoice Management:** Create, send, and manage invoices
-- **🧩 Comprehensive Tools:** 26 specialized tools for different use cases
+- **🧩 Comprehensive Tools:** 34+ specialized tools for different use cases
 - **🎯 Intelligent Prompts:** 8 AI-powered prompts for complex analysis and insights
 - **🌐 Multi-Client Support:** Works with all major MCP clients
 

@@ -38,7 +38,7 @@ import {
   updateCompanyTool,
   deleteCompanyTool
 } from './tools/companiesTools.js';
-import { getUsersTool, getUserTool } from './tools/usersTools.js';
+import { getCurrentUserTool, getUsersTool, getUserTool } from './tools/usersTools.js';
 import {
   getContactsTool,
   getContactTool,
@@ -93,6 +93,7 @@ const AVAILABLE_TOOLS = [
   updateCompanyTool,
   deleteCompanyTool,
   // Users - Read
+  getCurrentUserTool,
   getUsersTool,
   getUserTool,
   // Contacts - CRUD

@@ -95,7 +95,9 @@ export const getActivitiesTool = {
 
     try {
       const apiService = new MocoApiService();
-      const activities = await apiService.getActivities(startDate, endDate, projectId, userId);
+      // Use MOCO_USER_ID from config as default filter if no userId provided
+      const effectiveUserId = userId ?? apiService['config'].userId;
+      const activities = await apiService.getActivities(startDate, endDate, projectId, effectiveUserId);
 
       if (activities.length === 0) {
         return createEmptyResultMessage({

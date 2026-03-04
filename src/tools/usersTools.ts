@@ -60,6 +60,32 @@ function formatUserList(users: StaffUser[]): string {
 }
 
 /**
+ * Tool: get_current_user
+ * Retrieves the currently authenticated user
+ */
+export const getCurrentUserTool = {
+  name: 'get_current_user',
+  description: 'Get the currently authenticated MOCO user (based on the API key). Returns user ID, name, and email. Useful to identify your own user ID for filtering activities.',
+  inputSchema: zodToJsonSchema(z.object({})),
+  handler: async (_params: Record<string, never>): Promise<string> => {
+    try {
+      const apiService = new MocoApiService();
+      const user = await apiService.getCurrentUser();
+      return [
+        `Current authenticated user:`,
+        `User ID: ${user.id}`,
+        `Name: ${user.firstname} ${user.lastname}`,
+        `Email: ${user.email}`,
+        ``,
+        `Tip: Set MOCO_USER_ID=${user.id} in your claude_desktop_config.json to automatically filter activities to your own entries.`
+      ].join('\n');
+    } catch (error) {
+      return `Error retrieving current user: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+  }
+};
+
+/**
  * Tool: get_users
  * Retrieves all staff users with optional filtering
  */

@@ -10,6 +10,8 @@ export interface MocoConfig {
   subdomain: string;
   /** Complete base URL for MoCo API requests */
   baseUrl: string;
+  /** Optional: Current user ID for filtering activities (set via MOCO_USER_ID env var) */
+  userId?: number;
 }
 
 /**
@@ -34,9 +36,14 @@ export function getMocoConfig(): MocoConfig {
     throw new Error('MOCO_SUBDOMAIN should only contain the subdomain name (e.g., "yourcompany", not "yourcompany.mocoapp.com")');
   }
   
+  // Optional user ID for automatic activity filtering
+  const userIdRaw = process.env.MOCO_USER_ID;
+  const userId = userIdRaw ? parseInt(userIdRaw, 10) : undefined;
+
   return {
     apiKey,
     subdomain,
-    baseUrl: `https://${subdomain}.mocoapp.com/api/v1`
+    baseUrl: `https://${subdomain}.mocoapp.com/api/v1`,
+    userId
   };
 }
