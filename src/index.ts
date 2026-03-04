@@ -38,6 +38,7 @@ import {
   updateCompanyTool,
   deleteCompanyTool
 } from './tools/companiesTools.js';
+import { getUsersTool, getUserTool } from './tools/usersTools.js';
 import {
   getContactsTool,
   getContactTool,
@@ -54,7 +55,13 @@ import {
   deleteInvoiceTool
 } from './tools/invoicesTools.js';
 import { getUserHolidaysTool } from './tools/userHolidaysTools.js';
-import { getUserPresencesTool } from './tools/userPresencesTools.js';
+import { 
+  getUserPresencesTool,
+  createPresenceTool,
+  updatePresenceTool,
+  deletePresenceTool,
+  touchPresenceTool
+} from './tools/userPresencesTools.js';
 import { getUserSickDaysTool } from './tools/userSickDaysTools.js';
 import { getPublicHolidaysTool } from './tools/publicHolidaysTools.js';
 
@@ -85,6 +92,9 @@ const AVAILABLE_TOOLS = [
   createCompanyTool,
   updateCompanyTool,
   deleteCompanyTool,
+  // Users - Read
+  getUsersTool,
+  getUserTool,
   // Contacts - CRUD
   getContactsTool,
   getContactTool,
@@ -101,6 +111,10 @@ const AVAILABLE_TOOLS = [
   // Holidays & Presences
   getUserHolidaysTool,
   getUserPresencesTool,
+  createPresenceTool,
+  updatePresenceTool,
+  deletePresenceTool,
+  touchPresenceTool,
   getUserSickDaysTool,
   getPublicHolidaysTool
 ];

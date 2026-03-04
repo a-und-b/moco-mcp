@@ -15,7 +15,8 @@ import type {
   Company,
   Contact,
   Invoice,
-  InvoiceItem
+  InvoiceItem,
+  StaffUser
 } from '../types/mocoTypes.js';
 
 /**
@@ -69,15 +70,17 @@ export class MocoApiService {
    * Makes a POST request to the MoCo API
    * @param endpoint - API endpoint path (without base URL)
    * @param body - Request body
+   * @param extraHeaders - Optional additional headers (e.g. X-IMPERSONATE-USER-ID)
    * @returns Promise with parsed JSON response
    */
-  private async makePostRequest<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
+  private async makePostRequest<T>(endpoint: string, body: Record<string, unknown>, extraHeaders?: Record<string, string>): Promise<T> {
     const url = new URL(`${this.config.baseUrl}${endpoint}`);
+    const headers = { ...this.defaultHeaders, ...extraHeaders };
 
     try {
       const response = await fetch(url.toString(), {
         method: 'POST',
-        headers: this.defaultHeaders,
+        headers,
         body: JSON.stringify(body)
       });
 
@@ -96,15 +99,17 @@ export class MocoApiService {
    * Makes a PUT request to the MoCo API
    * @param endpoint - API endpoint path (without base URL)
    * @param body - Request body
+   * @param extraHeaders - Optional additional headers (e.g. X-IMPERSONATE-USER-ID)
    * @returns Promise with parsed JSON response
    */
-  private async makePutRequest<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
+  private async makePutRequest<T>(endpoint: string, body: Record<string, unknown>, extraHeaders?: Record<string, string>): Promise<T> {
     const url = new URL(`${this.config.baseUrl}${endpoint}`);
+    const headers = { ...this.defaultHeaders, ...extraHeaders };
 
     try {
       const response = await fetch(url.toString(), {
         method: 'PUT',
-        headers: this.defaultHeaders,
+        headers,
         body: JSON.stringify(body)
       });
 
@@ -147,15 +152,17 @@ export class MocoApiService {
   /**
    * Makes a DELETE request to the MoCo API
    * @param endpoint - API endpoint path (without base URL)
+   * @param extraHeaders - Optional additional headers (e.g. X-IMPERSONATE-USER-ID)
    * @returns Promise with success status
    */
-  private async makeDeleteRequest(endpoint: string): Promise<void> {
+  private async makeDeleteRequest(endpoint: string, extraHeaders?: Record<string, string>): Promise<void> {
     const url = new URL(`${this.config.baseUrl}${endpoint}`);
+    const headers = { ...this.defaultHeaders, ...extraHeaders };
 
     try {
       const response = await fetch(url.toString(), {
         method: 'DELETE',
-        headers: this.defaultHeaders
+        headers
       });
 
       if (!response.ok) {
@@ -240,13 +247,14 @@ export class MocoApiService {
   }
 
   /**
-   * Retrieves activities for the current user within a date range
+   * Retrieves activities within a date range
    * @param startDate - Start date in ISO 8601 format (YYYY-MM-DD)
    * @param endDate - End date in ISO 8601 format (YYYY-MM-DD)
    * @param projectId - Optional project ID to filter activities
+   * @param userId - Optional user ID to filter activities for a specific user
    * @returns Promise with array of activities
    */
-  async getActivities(startDate: string, endDate: string, projectId?: number): Promise<Activity[]> {
+  async getActivities(startDate: string, endDate: string, projectId?: number, userId?: number): Promise<Activity[]> {
     const params: Record<string, string | number> = {
       from: startDate,
       to: endDate
@@ -255,8 +263,33 @@ export class MocoApiService {
     if (projectId) {
       params.project_id = projectId;
     }
+    if (userId) {
+      params.user_id = userId;
+    }
     
     return this.fetchAllPages<Activity>('/activities', params);
+  }
+
+  /**
+   * Retrieves all staff users
+   * @param params - Optional filters: email, tags, includeArchived
+   * @returns Promise with array of staff users
+   */
+  async getUsers(params?: { email?: string; tags?: string; includeArchived?: boolean }): Promise<StaffUser[]> {
+    const apiParams: Record<string, string | number> = {};
+    if (params?.email) apiParams.email = params.email;
+    if (params?.tags) apiParams.tags = params.tags;
+    if (params?.includeArchived !== undefined) apiParams.include_archived = params.includeArchived ? 'true' : 'false';
+    return this.fetchAllPages<StaffUser>('/users', apiParams);
+  }
+
+  /**
+   * Retrieves a single staff user by ID
+   * @param userId - User ID
+   * @returns Promise with staff user
+   */
+  async getUser(userId: number): Promise<StaffUser> {
+    return this.makeRequest<StaffUser>(`/users/${userId}`, {});
   }
 
   /**
@@ -471,12 +504,61 @@ export class MocoApiService {
   }
 
   // ============================================
+  // USER PRESENCES - Write Operations
+  // ============================================
+
+  /**
+   * Creates a new user presence (work time entry)
+   * @param params - Presence creation parameters
+   * @returns Promise with created presence
+   */
+  async createPresence(params: {
+    date: string;      // YYYY-MM-DD
+    from: string;      // HH:MM
+    to?: string;       // HH:MM (optional, omit for open presence)
+  }): Promise<UserPresence> {
+    return this.makePostRequest<UserPresence>('/users/presences', params);
+  }
+
+  /**
+   * Updates an existing user presence
+   * @param presenceId - ID of the presence to update
+   * @param params - Fields to update
+   * @returns Promise with updated presence
+   */
+  async updatePresence(presenceId: number, params: {
+    date?: string;
+    from?: string;
+    to?: string;
+  }): Promise<UserPresence> {
+    return this.makePutRequest<UserPresence>(`/users/presences/${presenceId}`, params);
+  }
+
+  /**
+   * Deletes a user presence
+   * @param presenceId - ID of the presence to delete
+   */
+  async deletePresence(presenceId: number): Promise<void> {
+    return this.makeDeleteRequest(`/users/presences/${presenceId}`);
+  }
+
+  /**
+   * Touch: Start or stop presence (clock in/out)
+   * Creates a new presence starting now, or closes an open presence
+   * @returns Promise with created/updated presence
+   */
+  async touchPresence(): Promise<UserPresence> {
+    return this.makePostRequest<UserPresence>('/users/presences/touch', {});
+  }
+
+  // ============================================
   // ACTIVITIES - Write Operations
   // ============================================
 
   /**
    * Creates a new activity (time entry)
    * @param params - Activity creation parameters
+   * @param impersonateUserId - Optional user ID to create activity for (requires Staff permissions)
    * @returns Promise with created activity
    */
   async createActivity(params: {
@@ -490,14 +572,16 @@ export class MocoApiService {
     remote_service?: 'trello' | 'jira' | 'asana' | 'basecamp' | 'wunderlist' | 'toggl' | 'mite' | 'github' | 'youtrack';
     remote_id?: string;
     remote_url?: string;
-  }): Promise<Activity> {
-    return this.makePostRequest<Activity>('/activities', params);
+  }, impersonateUserId?: number): Promise<Activity> {
+    const extraHeaders = impersonateUserId ? { 'X-IMPERSONATE-USER-ID': String(impersonateUserId) } : undefined;
+    return this.makePostRequest<Activity>('/activities', params, extraHeaders);
   }
 
   /**
    * Updates an existing activity
    * @param activityId - ID of the activity to update
    * @param params - Fields to update
+   * @param impersonateUserId - Optional user ID to act as (requires Staff permissions)
    * @returns Promise with updated activity
    */
   async updateActivity(activityId: number, params: {
@@ -511,17 +595,20 @@ export class MocoApiService {
     remote_service?: 'trello' | 'jira' | 'asana' | 'basecamp' | 'wunderlist' | 'toggl' | 'mite' | 'github' | 'youtrack';
     remote_id?: string;
     remote_url?: string;
-  }): Promise<Activity> {
-    return this.makePutRequest<Activity>(`/activities/${activityId}`, params);
+  }, impersonateUserId?: number): Promise<Activity> {
+    const extraHeaders = impersonateUserId ? { 'X-IMPERSONATE-USER-ID': String(impersonateUserId) } : undefined;
+    return this.makePutRequest<Activity>(`/activities/${activityId}`, params, extraHeaders);
   }
 
   /**
    * Deletes an activity
    * Note: Only possible if the activity has not been billed or locked
    * @param activityId - ID of the activity to delete
+   * @param impersonateUserId - Optional user ID to act as (requires Staff permissions)
    */
-  async deleteActivity(activityId: number): Promise<void> {
-    return this.makeDeleteRequest(`/activities/${activityId}`);
+  async deleteActivity(activityId: number, impersonateUserId?: number): Promise<void> {
+    const extraHeaders = impersonateUserId ? { 'X-IMPERSONATE-USER-ID': String(impersonateUserId) } : undefined;
+    return this.makeDeleteRequest(`/activities/${activityId}`, extraHeaders);
   }
 
   /**

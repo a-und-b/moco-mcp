@@ -58,6 +58,177 @@ export const getUserPresencesTool = {
   }
 };
 
+// Schema for create_presence tool
+const CreatePresenceSchema = z.object({
+  date: z.string().describe('Date in ISO 8601 format (YYYY-MM-DD)'),
+  from: z.string().describe('Start time in HH:MM format (e.g., "08:30")'),
+  to: z.string().optional().describe('End time in HH:MM format (e.g., "17:00"). Omit for open/running presence.')
+});
+
+/**
+ * Tool: create_presence
+ * Creates a new user presence (work time entry)
+ */
+export const createPresenceTool = {
+  name: 'create_presence',
+  description: 'Create a new user presence (work time entry) with date, start time, and optional end time',
+  inputSchema: zodToJsonSchema(CreatePresenceSchema),
+  handler: async (params: z.infer<typeof CreatePresenceSchema>): Promise<string> => {
+    const { date, from, to } = params;
+
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return createValidationErrorMessage({
+        field: 'date',
+        value: date,
+        reason: 'invalid_format'
+      });
+    }
+
+    // Validate time format
+    if (!/^\d{2}:\d{2}$/.test(from)) {
+      return createValidationErrorMessage({
+        field: 'from',
+        value: from,
+        reason: 'invalid_time_format'
+      });
+    }
+
+    if (to && !/^\d{2}:\d{2}$/.test(to)) {
+      return createValidationErrorMessage({
+        field: 'to',
+        value: to,
+        reason: 'invalid_time_format'
+      });
+    }
+
+    try {
+      const apiService = new MocoApiService();
+      const presence = await apiService.createPresence({ date, from, to });
+      
+      const hours = presence.to ? calculateHoursFromTimes(presence.from, presence.to) : null;
+      const hoursInfo = hours ? ` (${roundHours(hours)}h)` : ' (running)';
+      
+      return `✅ Presence created successfully:
+- ID: ${presence.id}
+- Date: ${presence.date}
+- From: ${presence.from}
+- To: ${presence.to || 'open'}${hoursInfo}`;
+
+    } catch (error) {
+      return `Error creating presence: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+  }
+};
+
+// Schema for update_presence tool
+const UpdatePresenceSchema = z.object({
+  presenceId: z.number().describe('ID of the presence to update'),
+  date: z.string().optional().describe('New date in ISO 8601 format (YYYY-MM-DD)'),
+  from: z.string().optional().describe('New start time in HH:MM format'),
+  to: z.string().optional().describe('New end time in HH:MM format')
+});
+
+/**
+ * Tool: update_presence
+ * Updates an existing user presence
+ */
+export const updatePresenceTool = {
+  name: 'update_presence',
+  description: 'Update an existing user presence. Only provide the fields you want to change.',
+  inputSchema: zodToJsonSchema(UpdatePresenceSchema),
+  handler: async (params: z.infer<typeof UpdatePresenceSchema>): Promise<string> => {
+    const { presenceId, date, from, to } = params;
+
+    // Build update object with only provided fields
+    const updateData: { date?: string; from?: string; to?: string } = {};
+    if (date) updateData.date = date;
+    if (from) updateData.from = from;
+    if (to) updateData.to = to;
+
+    if (Object.keys(updateData).length === 0) {
+      return 'No fields to update provided.';
+    }
+
+    try {
+      const apiService = new MocoApiService();
+      const presence = await apiService.updatePresence(presenceId, updateData);
+      
+      const hours = presence.to ? calculateHoursFromTimes(presence.from, presence.to) : null;
+      const hoursInfo = hours ? ` (${roundHours(hours)}h)` : ' (running)';
+      
+      return `✅ Presence updated successfully:
+- ID: ${presence.id}
+- Date: ${presence.date}
+- From: ${presence.from}
+- To: ${presence.to || 'open'}${hoursInfo}`;
+
+    } catch (error) {
+      return `Error updating presence: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+  }
+};
+
+// Schema for delete_presence tool
+const DeletePresenceSchema = z.object({
+  presenceId: z.number().describe('ID of the presence to delete')
+});
+
+/**
+ * Tool: delete_presence
+ * Deletes a user presence
+ */
+export const deletePresenceTool = {
+  name: 'delete_presence',
+  description: 'Delete a user presence by ID',
+  inputSchema: zodToJsonSchema(DeletePresenceSchema),
+  handler: async (params: z.infer<typeof DeletePresenceSchema>): Promise<string> => {
+    const { presenceId } = params;
+
+    try {
+      const apiService = new MocoApiService();
+      await apiService.deletePresence(presenceId);
+      
+      return `✅ Presence ${presenceId} deleted successfully.`;
+
+    } catch (error) {
+      return `Error deleting presence: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+  }
+};
+
+// Schema for touch_presence tool (no parameters needed)
+const TouchPresenceSchema = z.object({});
+
+/**
+ * Tool: touch_presence
+ * Clock in/out - starts or stops a presence
+ */
+export const touchPresenceTool = {
+  name: 'touch_presence',
+  description: 'Clock in/out: Creates a new presence starting now, or closes an open presence at current time. Useful for real-time time tracking.',
+  inputSchema: zodToJsonSchema(TouchPresenceSchema),
+  handler: async (): Promise<string> => {
+    try {
+      const apiService = new MocoApiService();
+      const presence = await apiService.touchPresence();
+      
+      const action = presence.to ? 'clocked out' : 'clocked in';
+      const hours = presence.to ? calculateHoursFromTimes(presence.from, presence.to) : null;
+      const hoursInfo = hours ? ` (Total: ${roundHours(hours)}h)` : '';
+      
+      return `✅ Successfully ${action}:
+- ID: ${presence.id}
+- Date: ${presence.date}
+- From: ${presence.from}
+- To: ${presence.to || 'running'}${hoursInfo}`;
+
+    } catch (error) {
+      return `Error with touch presence: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+  }
+};
+
 /**
  * Aggregates presence data by date with comprehensive summation
  */

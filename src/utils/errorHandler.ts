@@ -96,6 +96,12 @@ export function createValidationErrorMessage(error: {
     
     case 'empty_search_query':
       return `Search query cannot be empty.`;
+
+    case 'invalid_time_format':
+      return `Invalid time format for ${field}: "${value}". Expected: HH:MM (e.g., 08:30)`;
+
+    case 'invalid_format':
+      return `Invalid format for ${field}: "${value}".`;
     
     default:
       return `Validation error for ${field}: ${reason}`;
@@ -108,7 +114,7 @@ export function createValidationErrorMessage(error: {
  * @returns User-friendly message in English
  */
 export function createEmptyResultMessage(context: {
-  type: 'activities' | 'projects' | 'tasks' | 'holidays' | 'presences' | 'public_holidays' | 'companies' | 'contacts' | 'invoices';
+  type: 'activities' | 'projects' | 'tasks' | 'holidays' | 'presences' | 'public_holidays' | 'companies' | 'contacts' | 'invoices' | 'users';
   startDate?: string;
   endDate?: string;
   year?: number;
@@ -143,6 +149,9 @@ export function createEmptyResultMessage(context: {
 
     case 'invoices':
       return 'No invoices found.';
+
+    case 'users':
+      return 'No users found.';
 
     default:
       return 'No results found.';

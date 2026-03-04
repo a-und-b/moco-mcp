@@ -22,7 +22,8 @@ import type {
 const GetActivitiesSchema = z.object({
   startDate: z.string().describe('Start date in ISO 8601 format (YYYY-MM-DD)'),
   endDate: z.string().describe('End date in ISO 8601 format (YYYY-MM-DD)'),
-  projectId: z.number().positive().optional().describe('Optional project ID to filter activities for a specific project')
+  projectId: z.number().positive().optional().describe('Optional project ID to filter activities for a specific project'),
+  userId: z.number().positive().optional().describe('Optional user ID to filter activities for a specific user (requires visibility)')
 });
 
 // Remote service enum for external integrations
@@ -40,7 +41,8 @@ const CreateActivitySchema = z.object({
   tag: z.string().optional().describe('Tag identifier (e.g., "RMT-123")'),
   remoteService: RemoteServiceEnum.optional().describe('External system type for linking'),
   remoteId: z.string().optional().describe('External ticket identifier'),
-  remoteUrl: z.string().url().optional().describe('Link to external ticket')
+  remoteUrl: z.string().url().optional().describe('Link to external ticket'),
+  impersonateUserId: z.number().positive().optional().describe('User ID to create activity for (impersonation; requires Staff permissions)')
 });
 
 // Schema for update_activity tool parameters
@@ -56,12 +58,14 @@ const UpdateActivitySchema = z.object({
   tag: z.string().optional().describe('New tag identifier'),
   remoteService: RemoteServiceEnum.optional().describe('New external system type'),
   remoteId: z.string().optional().describe('New external ticket identifier'),
-  remoteUrl: z.string().url().optional().describe('New link to external ticket')
+  remoteUrl: z.string().url().optional().describe('New link to external ticket'),
+  impersonateUserId: z.number().positive().optional().describe('User ID to act as when updating (impersonation; requires Staff permissions)')
 });
 
 // Schema for delete_activity tool parameters
 const DeleteActivitySchema = z.object({
-  activityId: z.number().positive().describe('ID of the activity to delete')
+  activityId: z.number().positive().describe('ID of the activity to delete'),
+  impersonateUserId: z.number().positive().optional().describe('User ID to act as when deleting (impersonation; requires Staff permissions)')
 });
 
 // Schema for timer tools
@@ -75,10 +79,10 @@ const ActivityTimerSchema = z.object({
  */
 export const getActivitiesTool = {
   name: 'get_activities',
-  description: 'Get all activities within a date range with automatic summation by date, project, and task. Optionally filter by project ID.',
+  description: 'Get all activities within a date range with automatic summation by date, project, and task. Optionally filter by project ID or user ID.',
   inputSchema: zodToJsonSchema(GetActivitiesSchema),
   handler: async (params: z.infer<typeof GetActivitiesSchema>): Promise<string> => {
-    const { startDate, endDate, projectId } = params;
+    const { startDate, endDate, projectId, userId } = params;
 
     // Validate date format and range
     if (!validateDateRange(startDate, endDate)) {
@@ -91,7 +95,7 @@ export const getActivitiesTool = {
 
     try {
       const apiService = new MocoApiService();
-      const activities = await apiService.getActivities(startDate, endDate, projectId);
+      const activities = await apiService.getActivities(startDate, endDate, projectId, userId);
 
       if (activities.length === 0) {
         return createEmptyResultMessage({
@@ -103,7 +107,7 @@ export const getActivitiesTool = {
       }
 
       const summary = aggregateActivities(activities, startDate, endDate);
-      return formatActivitiesSummary(summary, projectId);
+      return formatActivitiesSummary(summary, projectId, userId);
 
     } catch (error) {
       return `Error retrieving activities: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -251,10 +255,13 @@ function createDailySummary(date: string, activities: Activity[]): DailyActivity
 /**
  * Formats the activities summary into a readable string
  */
-function formatActivitiesSummary(summary: ActivityRangeSummary, projectId?: number): string {
+function formatActivitiesSummary(summary: ActivityRangeSummary, projectId?: number, userId?: number): string {
   const lines: string[] = [];
 
-  const titleSuffix = projectId ? ` (filtered by project ID: ${projectId})` : '';
+  const filters: string[] = [];
+  if (projectId) filters.push(`project ID: ${projectId}`);
+  if (userId) filters.push(`user ID: ${userId}`);
+  const titleSuffix = filters.length > 0 ? ` (filtered by ${filters.join(', ')})` : '';
   lines.push(`Activities from ${summary.startDate} to ${summary.endDate}${titleSuffix}:`);
   lines.push('');
 
@@ -329,7 +336,7 @@ export const createActivityTool = {
   description: 'Create a new time tracking activity (time entry). Requires date, project ID, and task ID. Duration can be specified in seconds or hours.',
   inputSchema: zodToJsonSchema(CreateActivitySchema),
   handler: async (params: z.infer<typeof CreateActivitySchema>): Promise<string> => {
-    const { date, projectId, taskId, seconds, hours, description, billable, tag, remoteService, remoteId, remoteUrl } = params;
+    const { date, projectId, taskId, seconds, hours, description, billable, tag, remoteService, remoteId, remoteUrl, impersonateUserId } = params;
 
     // Validate date format
     if (!isValidDateFormat(date)) {
@@ -363,7 +370,7 @@ export const createActivityTool = {
 
     try {
       const apiService = new MocoApiService();
-      const activity = await apiService.createActivity(apiParams as any);
+      const activity = await apiService.createActivity(apiParams as any, impersonateUserId);
 
       return `Activity created successfully!\n\n${formatActivity(activity)}`;
 
@@ -382,7 +389,7 @@ export const updateActivityTool = {
   description: 'Update an existing time tracking activity. Only provide the fields you want to change.',
   inputSchema: zodToJsonSchema(UpdateActivitySchema),
   handler: async (params: z.infer<typeof UpdateActivitySchema>): Promise<string> => {
-    const { activityId, date, projectId, taskId, seconds, hours, description, billable, tag, remoteService, remoteId, remoteUrl } = params;
+    const { activityId, date, projectId, taskId, seconds, hours, description, billable, tag, remoteService, remoteId, remoteUrl, impersonateUserId } = params;
 
     // Validate date format if provided
     if (date !== undefined && !isValidDateFormat(date)) {
@@ -421,7 +428,7 @@ export const updateActivityTool = {
 
     try {
       const apiService = new MocoApiService();
-      const activity = await apiService.updateActivity(activityId, apiParams as any);
+      const activity = await apiService.updateActivity(activityId, apiParams as any, impersonateUserId);
 
       return `Activity updated successfully!\n\n${formatActivity(activity)}`;
 
@@ -440,11 +447,11 @@ export const deleteActivityTool = {
   description: 'Delete a time tracking activity. Only possible if the activity has not been billed or locked.',
   inputSchema: zodToJsonSchema(DeleteActivitySchema),
   handler: async (params: z.infer<typeof DeleteActivitySchema>): Promise<string> => {
-    const { activityId } = params;
+    const { activityId, impersonateUserId } = params;
 
     try {
       const apiService = new MocoApiService();
-      await apiService.deleteActivity(activityId);
+      await apiService.deleteActivity(activityId, impersonateUserId);
 
       return `Activity ${activityId} deleted successfully.`;
 

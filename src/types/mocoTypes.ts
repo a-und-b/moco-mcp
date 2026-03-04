@@ -129,6 +129,28 @@ export interface User {
   updated_at: string;
 }
 
+/**
+ * Staff user from MoCo API (GET /users)
+ * Full user record with unit, role, and additional fields
+ */
+export interface StaffUser {
+  id: number;
+  firstname: string;
+  lastname: string;
+  active: boolean;
+  extern: boolean;
+  email: string;
+  mobile_phone?: string;
+  work_phone?: string;
+  unit?: { id: number; name: string };
+  role?: { id: number; name: string };
+  tags?: string[];
+  avatar_url?: string;
+  custom_properties?: Record<string, string>;
+  created_at: string;
+  updated_at: string;
+}
+
 // Aggregated data structures for processed responses
 
 /**

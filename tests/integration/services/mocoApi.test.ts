@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { MocoApiService } from '../../../src/services/mocoApi';
-import type { Activity, Project, Task, UserHoliday, UserPresence } from '../../../src/types/mocoTypes';
+import type { Activity, Project, Task, UserHoliday, UserPresence, StaffUser } from '../../../src/types/mocoTypes';
 
 // Mock fetch globally
 const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
@@ -133,6 +133,162 @@ describe('MocoApiService Integration Tests', () => {
 
       await expect(apiService.getActivities('2024-01-01', '2024-01-31'))
         .rejects.toThrow('API authentication failed. Please check MOCO_API_KEY.');
+    });
+
+    it('should include user_id when filtering by user', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+        headers: new Headers({
+          'X-Page': '1',
+          'X-Per-Page': '25',
+          'X-Total': '0'
+        })
+      } as Response);
+
+      await apiService.getActivities('2024-01-01', '2024-01-31', undefined, 123);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test-company.mocoapp.com/api/v1/activities?from=2024-01-01&to=2024-01-31&user_id=123&page=1',
+        expect.any(Object)
+      );
+    });
+  });
+
+  describe('getUsers', () => {
+    it('should fetch all users', async () => {
+      const mockUsers: StaffUser[] = [
+        {
+          id: 1,
+          firstname: 'John',
+          lastname: 'Doe',
+          active: true,
+          extern: false,
+          email: 'john@example.com',
+          unit: { id: 10, name: 'Development' },
+          role: { id: 20, name: 'Developer' },
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z'
+        }
+      ];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockUsers,
+        headers: new Headers({
+          'X-Page': '1',
+          'X-Per-Page': '25',
+          'X-Total': '1'
+        })
+      } as Response);
+
+      const result = await apiService.getUsers();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test-company.mocoapp.com/api/v1/users?page=1',
+        expect.any(Object)
+      );
+      expect(result).toEqual(mockUsers);
+    });
+
+    it('should pass filter params when provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+        headers: new Headers({
+          'X-Page': '1',
+          'X-Per-Page': '25',
+          'X-Total': '0'
+        })
+      } as Response);
+
+      await apiService.getUsers({ email: 'john@example.com', tags: 'Developer', includeArchived: true });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('email=john%40example.com'),
+        expect.any(Object)
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('tags=Developer'),
+        expect.any(Object)
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('include_archived=true'),
+        expect.any(Object)
+      );
+    });
+  });
+
+  describe('getUser', () => {
+    it('should fetch single user by ID', async () => {
+      const mockUser: StaffUser = {
+        id: 123,
+        firstname: 'Jane',
+        lastname: 'Smith',
+        active: true,
+        extern: false,
+        email: 'jane@example.com',
+        unit: { id: 10, name: 'Design' },
+        role: { id: 30, name: 'Designer' },
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockUser
+      } as Response);
+
+      const result = await apiService.getUser(123);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test-company.mocoapp.com/api/v1/users/123',
+        expect.any(Object)
+      );
+      expect(result).toEqual(mockUser);
+    });
+  });
+
+  describe('createActivity', () => {
+    it('should send X-IMPERSONATE-USER-ID header when impersonateUserId provided', async () => {
+      const mockActivity: Activity = {
+        id: 999,
+        date: '2024-01-15',
+        hours: 2,
+        description: 'Test',
+        project: { id: 123, name: 'Project' },
+        task: { id: 456, name: 'Task' },
+        user: { id: 789, firstname: 'Other', lastname: 'User' },
+        billable: true,
+        locked: false,
+        created_at: '2024-01-15T10:00:00Z',
+        updated_at: '2024-01-15T10:00:00Z'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockActivity
+      } as Response);
+
+      await apiService.createActivity(
+        {
+          date: '2024-01-15',
+          project_id: 123,
+          task_id: 456,
+          seconds: 7200
+        },
+        789
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test-company.mocoapp.com/api/v1/activities',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'X-IMPERSONATE-USER-ID': '789'
+          })
+        })
+      );
     });
   });
 

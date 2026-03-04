@@ -220,12 +220,21 @@ Use the `env` section in your MCP client configuration as shown above.
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `get_activities` | Get activities within a date range with summation | `startDate`, `endDate`, `projectId` (optional) |
-| `create_activity` | Create a new time entry | `date`, `projectId`, `taskId`, `hours`, `description` (optional) |
-| `update_activity` | Update an existing time entry | `activityId`, `date`, `projectId`, `taskId`, `hours`, `description` |
-| `delete_activity` | Delete a time entry | `activityId` |
+| `get_activities` | Get activities within a date range with summation | `startDate`, `endDate`, `projectId` (optional), `userId` (optional) |
+| `create_activity` | Create a new time entry | `date`, `projectId`, `taskId`, `hours`, `description` (optional), `impersonateUserId` (optional, requires Staff) |
+| `update_activity` | Update an existing time entry | `activityId`, `date`, `projectId`, `taskId`, `hours`, `description`, `impersonateUserId` (optional, requires Staff) |
+| `delete_activity` | Delete a time entry | `activityId`, `impersonateUserId` (optional, requires Staff) |
 | `start_activity_timer` | Start the timer for an activity | `activityId` |
 | `stop_activity_timer` | Stop the timer for an activity | `activityId` |
+
+Note: `impersonateUserId` allows Staff users to create, update, or delete activities on behalf of another user.
+
+### Users
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_users` | List all staff users with optional filtering | `email`, `tags`, `includeArchived` (all optional) |
+| `get_user` | Get a single staff user by ID | `userId` |
 
 ### Projects
 
@@ -360,6 +369,18 @@ The MoCo MCP server provides 8 intelligent prompts that orchestrate multiple too
     "startDate": "2024-01-01",
     "endDate": "2024-01-31",
     "projectId": 123456
+  }
+}
+```
+
+**Filter activities for a specific user:**
+```json
+{
+  "name": "get_activities",
+  "arguments": {
+    "startDate": "2024-01-01",
+    "endDate": "2024-01-31",
+    "userId": 789
   }
 }
 ```
