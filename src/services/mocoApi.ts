@@ -1065,16 +1065,6 @@ export class MocoApiService {
   }
 
   /**
-   * Updates an offer (only draft/created offers can be updated)
-   * @param offerId - ID of the offer to update
-   * @param params - Fields to update
-   * @returns Promise with updated offer
-   */
-  async updateOffer(offerId: number, params: Record<string, unknown>): Promise<Offer> {
-    return this.makePutRequest<Offer>(`/offers/${offerId}`, params);
-  }
-
-  /**
    * Updates offer status
    * @param offerId - ID of the offer to update
    * @param status - New status

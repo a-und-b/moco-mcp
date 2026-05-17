@@ -58,7 +58,6 @@ import {
   getOffersTool,
   getOfferTool,
   createOfferTool,
-  updateOfferTool,
   updateOfferStatusTool,
   sendOfferEmailTool,
   deleteOfferTool
@@ -122,7 +121,6 @@ const AVAILABLE_TOOLS = [
   getOffersTool,
   getOfferTool,
   createOfferTool,
-  updateOfferTool,
   updateOfferStatusTool,
   sendOfferEmailTool,
   deleteOfferTool,

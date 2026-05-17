@@ -59,21 +59,6 @@ const CreateOfferSchema = z.object({
   tags: z.array(z.string()).optional().describe('Tags for the offer')
 });
 
-// Schema for update_offer tool
-const UpdateOfferSchema = z.object({
-  offerId: z.number().positive().describe('ID of the offer to update'),
-  title: z.string().optional().describe('Offer title'),
-  date: z.string().optional().describe('Offer date (YYYY-MM-DD)'),
-  validUntil: z.string().optional().describe('Valid until date (YYYY-MM-DD)'),
-  recipientAddress: z.string().optional().describe('Recipient address'),
-  salutation: z.string().optional().describe('Salutation text'),
-  footer: z.string().optional().describe('Footer text'),
-  tax: z.number().optional().describe('Tax percentage'),
-  discount: z.number().optional().describe('Discount percentage'),
-  items: z.array(OfferItemSchema).optional().describe('Offer line items'),
-  tags: z.array(z.string()).optional().describe('Tags for the offer')
-});
-
 // Schema for update_offer_status tool
 const UpdateOfferStatusSchema = z.object({
   offerId: z.number().positive().describe('ID of the offer to update'),
@@ -112,7 +97,37 @@ function formatOffer(offer: Offer): string {
   lines.push(`Tax: ${offer.tax}%`);
   lines.push(`Gross Total: ${offer.gross_total} ${offer.currency}`);
   if (offer.discount) lines.push(`Discount: ${offer.discount}%`);
+  if (offer.salutation) lines.push(`Salutation: ${offer.salutation}`);
+  if (offer.footer) lines.push(`Footer: ${offer.footer}`);
   if (offer.tags && offer.tags.length > 0) lines.push(`Tags: ${offer.tags.join(', ')}`);
+
+  if (offer.items && offer.items.length > 0) {
+    lines.push('');
+    lines.push('--- Positions ---');
+    offer.items.forEach((item, index) => {
+      if (item.type === 'title') {
+        lines.push(`\n  [${index + 1}] TITLE: ${item.title || ''}`);
+      } else if (item.type === 'description') {
+        lines.push(`  [${index + 1}] DESC: ${item.description || ''}`);
+      } else if (item.type === 'subtotal') {
+        lines.push(`  [${index + 1}] SUBTOTAL: ${item.net_total ?? ''} ${offer.currency}`);
+      } else if (item.type === 'page-break') {
+        lines.push(`  [${index + 1}] --- page break ---`);
+      } else if (item.type === 'separator') {
+        lines.push(`  [${index + 1}] --- separator ---`);
+      } else if (item.type === 'item') {
+        const qty = item.quantity ?? '';
+        const unit = item.unit ?? '';
+        const price = item.unit_price ?? '';
+        const total = item.net_total ?? '';
+        const opt = item.optional ? ' [OPTIONAL]' : '';
+        lines.push(`  [${index + 1}] ${item.title || ''}${opt}`);
+        lines.push(`       ${qty} ${unit} × ${price} = ${total} ${offer.currency}`);
+        if (item.description) lines.push(`       ${item.description}`);
+      }
+    });
+  }
+
   return lines.join('\n');
 }
 
@@ -266,51 +281,6 @@ export const createOfferTool = {
 
     } catch (error) {
       return `Error creating offer: ${error instanceof Error ? error.message : 'Unknown error'}`;
-    }
-  }
-};
-
-/**
- * Tool: update_offer
- * Updates an existing offer
- */
-export const updateOfferTool = {
-  name: 'update_offer',
-  description: 'Update an existing offer. Only offers in created status can be updated.',
-  inputSchema: zodToJsonSchema(UpdateOfferSchema),
-  handler: async (params: z.infer<typeof UpdateOfferSchema>): Promise<string> => {
-    const {
-      offerId, title, date, validUntil, recipientAddress,
-      salutation, footer, tax, discount, items, tags
-    } = params;
-
-    if (date !== undefined && !isValidDateFormat(date)) {
-      return createValidationErrorMessage({ field: 'date', value: date, reason: 'invalid_date_format' });
-    }
-    if (validUntil !== undefined && !isValidDateFormat(validUntil)) {
-      return createValidationErrorMessage({ field: 'validUntil', value: validUntil, reason: 'invalid_date_format' });
-    }
-
-    const apiParams: Record<string, unknown> = {};
-    if (title !== undefined) apiParams.title = title;
-    if (date !== undefined) apiParams.date = date;
-    if (validUntil !== undefined) apiParams.valid_until = validUntil;
-    if (recipientAddress !== undefined) apiParams.recipient_address = recipientAddress;
-    if (salutation !== undefined) apiParams.salutation = salutation;
-    if (footer !== undefined) apiParams.footer = footer;
-    if (tax !== undefined) apiParams.tax = tax;
-    if (discount !== undefined) apiParams.discount = discount;
-    if (items !== undefined) apiParams.items = items.map(convertItemToApiFormat);
-    if (tags !== undefined) apiParams.tags = tags;
-
-    try {
-      const apiService = new MocoApiService();
-      const offer = await apiService.updateOffer(offerId, apiParams);
-
-      return `Offer updated successfully!\n\n${formatOffer(offer)}`;
-
-    } catch (error) {
-      return `Error updating offer ${offerId}: ${error instanceof Error ? error.message : 'Unknown error'}`;
     }
   }
 };
