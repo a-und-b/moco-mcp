@@ -505,10 +505,14 @@ export class MocoApiService {
    * @returns Promise with array of user presences
    */
   async getUserPresences(startDate: string, endDate: string): Promise<UserPresence[]> {
-    return this.fetchAllPages<UserPresence>('/users/presences', {
+    const params: Record<string, string | number> = {
       from: startDate,
       to: endDate
-    });
+    };
+    if (this.config.userId) {
+      params.user_id = this.config.userId;
+    }
+    return this.fetchAllPages<UserPresence>('/users/presences', params);
   }
 
   // ============================================
