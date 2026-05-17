@@ -16,6 +16,8 @@ import type {
   Contact,
   Invoice,
   InvoiceItem,
+  Offer,
+  OfferItem,
   StaffUser
 } from '../types/mocoTypes.js';
 
@@ -999,6 +1001,110 @@ export class MocoApiService {
     } else {
       return this.makeDeleteRequest(`/invoices/${invoiceId}`);
     }
+  }
+
+  // ─── Offers ────────────────────────────────────────────────────────────────
+
+  /**
+   * Retrieves all offers with optional filtering
+   * @param params - Filter parameters
+   * @returns Promise with array of offers
+   */
+  async getOffers(params?: {
+    status?: string;
+    date_from?: string;
+    date_to?: string;
+    company_id?: number;
+    project_id?: number;
+    identifier?: string;
+    term?: string;
+    tags?: string;
+  }): Promise<Offer[]> {
+    const queryParams: Record<string, string | number> = {};
+    if (params?.status) queryParams.status = params.status;
+    if (params?.date_from) queryParams.date_from = params.date_from;
+    if (params?.date_to) queryParams.date_to = params.date_to;
+    if (params?.company_id) queryParams.company_id = params.company_id;
+    if (params?.project_id) queryParams.project_id = params.project_id;
+    if (params?.identifier) queryParams.identifier = params.identifier;
+    if (params?.term) queryParams.term = params.term;
+    if (params?.tags) queryParams.tags = params.tags;
+    return this.fetchAllPages<Offer>('/offers', queryParams);
+  }
+
+  /**
+   * Retrieves a single offer by ID
+   * @param offerId - Offer ID
+   * @returns Promise with offer including items
+   */
+  async getOffer(offerId: number): Promise<Offer> {
+    return this.makeRequest<Offer>(`/offers/${offerId}`);
+  }
+
+  /**
+   * Creates a new offer
+   * @param params - Offer creation parameters
+   * @returns Promise with created offer
+   */
+  async createOffer(params: {
+    customer_id: number;
+    recipient_address: string;
+    date: string;
+    title: string;
+    tax: number;
+    currency: string;
+    items: OfferItem[];
+    project_id?: number;
+    due_date?: string;
+    salutation?: string;
+    footer?: string;
+    discount?: number;
+    tags?: string[];
+  }): Promise<Offer> {
+    return this.makePostRequest<Offer>('/offers', params);
+  }
+
+  /**
+   * Updates an offer (only draft/created offers can be updated)
+   * @param offerId - ID of the offer to update
+   * @param params - Fields to update
+   * @returns Promise with updated offer
+   */
+  async updateOffer(offerId: number, params: Record<string, unknown>): Promise<Offer> {
+    return this.makePutRequest<Offer>(`/offers/${offerId}`, params);
+  }
+
+  /**
+   * Updates offer status
+   * @param offerId - ID of the offer to update
+   * @param status - New status
+   * @returns Promise with updated offer
+   */
+  async updateOfferStatus(offerId: number, status: 'sent' | 'accepted' | 'rejected' | 'expired'): Promise<Offer> {
+    return this.makePutRequest<Offer>(`/offers/${offerId}/update_status`, { status });
+  }
+
+  /**
+   * Sends an offer via email
+   * @param offerId - ID of the offer to send
+   * @param params - Email parameters
+   */
+  async sendOfferEmail(offerId: number, params: {
+    subject: string;
+    text: string;
+    emails_to?: string;
+    emails_cc?: string;
+    emails_bcc?: string;
+  }): Promise<void> {
+    await this.makePostRequest<unknown>(`/offers/${offerId}/send_email`, params);
+  }
+
+  /**
+   * Deletes an offer
+   * @param offerId - ID of the offer to delete
+   */
+  async deleteOffer(offerId: number): Promise<void> {
+    return this.makeDeleteRequest(`/offers/${offerId}`);
   }
 
 }

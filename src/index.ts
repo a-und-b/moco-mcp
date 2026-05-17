@@ -54,6 +54,15 @@ import {
   sendInvoiceEmailTool,
   deleteInvoiceTool
 } from './tools/invoicesTools.js';
+import {
+  getOffersTool,
+  getOfferTool,
+  createOfferTool,
+  updateOfferTool,
+  updateOfferStatusTool,
+  sendOfferEmailTool,
+  deleteOfferTool
+} from './tools/offersTools.js';
 import { getUserHolidaysTool } from './tools/userHolidaysTools.js';
 import { 
   getUserPresencesTool,
@@ -109,6 +118,14 @@ const AVAILABLE_TOOLS = [
   updateInvoiceStatusTool,
   sendInvoiceEmailTool,
   deleteInvoiceTool,
+  // Offers - CRUD
+  getOffersTool,
+  getOfferTool,
+  createOfferTool,
+  updateOfferTool,
+  updateOfferStatusTool,
+  sendOfferEmailTool,
+  deleteOfferTool,
   // Holidays & Presences
   getUserHolidaysTool,
   getUserPresencesTool,

@@ -150,6 +150,9 @@ export function createEmptyResultMessage(context: {
     case 'invoices':
       return 'No invoices found.';
 
+    case 'offers':
+      return 'No offers found.';
+
     case 'users':
       return 'No users found.';
 

@@ -335,6 +335,52 @@ export interface Contact {
 }
 
 /**
+ * Offer item for creating offers
+ */
+export interface OfferItem {
+  type: 'title' | 'description' | 'item' | 'subtotal' | 'page-break' | 'separator';
+  title?: string;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  unit_price?: number;
+  net_total?: number;
+  optional?: boolean;
+}
+
+/**
+ * Offer record from MoCo API
+ */
+export interface Offer {
+  id: number;
+  identifier: string;
+  date: string;
+  valid_until?: string;
+  title: string;
+  recipient_address?: string;
+  currency: string;
+  net_total: number;
+  tax: number;
+  gross_total: number;
+  status: 'created' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'billed' | 'partially_billed' | 'archived';
+  discount?: number;
+  salutation?: string;
+  footer?: string;
+  tags?: string[];
+  company?: {
+    id: number;
+    name: string;
+  };
+  project?: {
+    id: number;
+    name: string;
+  };
+  items?: OfferItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * Invoice item for creating invoices
  */
 export interface InvoiceItem {
